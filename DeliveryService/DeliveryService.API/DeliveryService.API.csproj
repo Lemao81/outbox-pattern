@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Common\Common.API\Common.API.csproj" />
       <ProjectReference Include="..\DeliveryService.Domain\DeliveryService.Domain.csproj" />
     </ItemGroup>
 
