@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  deliveryservice.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "80"
+
+  orderservice.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "80"
