@@ -1,5 +1,8 @@
 using Common.API.Extensions;
 using Common.Domain.Consts;
+using Common.Domain.Interfaces;
+using Common.Domain.Models;
+using Common.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Domain.Db;
 
@@ -8,6 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.ConfigureLogging(ServiceNames.OrderService);
 
 builder.Services.AddDbContext<OrderServiceDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+
+builder.Services.AddScoped<IMessageProducer, RabbitMqMessageProducer>();
+
+builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
 
 var app = builder.Build();
 
