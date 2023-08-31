@@ -5,6 +5,7 @@ using Common.Domain.Models;
 using Common.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Domain.Db;
+using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,9 @@ builder.ConfigureLogging(ServiceNames.OrderService);
 
 builder.Services.AddDbContext<OrderServiceDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
+builder.Services.AddRabbitMqConnectionFactory();
+
+builder.Services.AddScoped<IConnection>(sp => sp.GetRequiredService<ConnectionFactory>().CreateConnection());
 builder.Services.AddScoped<IMessageProducer, RabbitMqMessageProducer>();
 
 builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));

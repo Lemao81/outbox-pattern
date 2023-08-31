@@ -1,40 +1,41 @@
 ﻿using System.Text;
 using System.Text.Json;
-using Common.Domain.Models;
 using Common.Domain.Models.Messages;
 using Common.Domain.Services;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Common.Domain.Interfaces;
 
 public class RabbitMqMessageProducer : IMessageProducer
 {
-    private readonly RabbitMqOptions _options;
+    private readonly IConnection _connection;
+    private readonly ILogger<RabbitMqMessageProducer> _logger;
 
-    public RabbitMqMessageProducer(IOptions<RabbitMqOptions> options)
+    public RabbitMqMessageProducer(IConnection connection, ILogger<RabbitMqMessageProducer> logger)
     {
-        _options = options.Value;
+        _connection = connection;
+        _logger = logger;
     }
 
     public Task ProduceMessageAsync<TMessage, TData>(TMessage message) where TMessage : MessageBase<TData>
     {
-        var factory = new ConnectionFactory
+        try
         {
-            HostName = _options.HostName,
-            UserName = _options.UserName,
-            Password = _options.Password,
-            VirtualHost = "/"
-        };
+            var channel = _connection.CreateModel();
+            channel.QueueDeclare(message.Topic, durable: true);
 
-        var connection = factory.CreateConnection();
-        var channel = connection.CreateModel();
-        channel.QueueDeclare(message.Topic, durable: true);
+            var messageJson = JsonSerializer.Serialize(message);
+            var bytes = Encoding.UTF8.GetBytes(messageJson);
+            channel.BasicPublish("", message.Topic, body: bytes);
 
-        var messageJson = JsonSerializer.Serialize(message);
-        var bytes = Encoding.UTF8.GetBytes(messageJson);
-        channel.BasicPublish("", message.Topic, body: bytes);
+            return Task.CompletedTask;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "{Message}", exception.Message);
 
-        return Task.CompletedTask;
+            return Task.CompletedTask;
+        }
     }
 }
