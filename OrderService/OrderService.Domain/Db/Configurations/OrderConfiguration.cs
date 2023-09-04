@@ -12,6 +12,15 @@ public class OrderConfiguration : ConfigurationBase<Order>
 
         builder.ToTable("orders");
 
-        builder.HasMany(o => o.Items).WithOne().HasForeignKey(i => i.OrderId);
+        builder.Property(o => o.Status).HasColumnName("status").IsRequired();
+        builder.Property(o => o.TotalAmount).HasColumnName("total_amount");
+
+        builder.HasMany(o => o.Products).WithMany(p => p.Orders).UsingEntity(b =>
+        {
+            b.ToTable("order_product");
+
+            b.Property(typeof(Guid), "OrdersId").HasColumnName("orders_id");
+            b.Property(typeof(Guid), "ProductsId").HasColumnName("products_id");
+        });
     }
 }

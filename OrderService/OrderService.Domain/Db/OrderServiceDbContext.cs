@@ -7,7 +7,7 @@ namespace OrderService.Domain.Db;
 public class OrderServiceDbContext : DbContext
 {
     public DbSet<Order>? Orders { get; set; }
-    public DbSet<OrderItem>? OrderItems { get; set; }
+    public DbSet<Product>? Products { get; set; }
 
     public OrderServiceDbContext(DbContextOptions<OrderServiceDbContext> options) : base(options)
     {

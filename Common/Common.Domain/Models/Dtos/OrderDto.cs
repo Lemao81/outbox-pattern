@@ -2,5 +2,5 @@
 
 public class OrderDto
 {
-    public List<OrderItemDto> Items { get; set; } = new();
+    public List<ProductDto> Products { get; set; } = new();
 }
