@@ -2,12 +2,13 @@
   "profiles": {
     "http": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__Postgres": "Host=localhost;Database=outbox_pattern;Username=sa;Password=sa;"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5180"
+      "applicationUrl": "http://localhost:5001"
     },
     "https": {
       "commandName": "Project",
