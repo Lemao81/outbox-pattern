@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using OrderService.Domain.Enums;
 using OrderService.Domain.Models;
 
 namespace OrderService.Domain.Db.Configurations;
@@ -12,7 +13,7 @@ public class OrderConfiguration : ConfigurationBase<Order>
 
         builder.ToTable("orders");
 
-        builder.Property(o => o.Status).HasColumnName("status").IsRequired();
+        builder.Property(o => o.Status).HasConversion(s => s.ToString(), s => Enum.Parse<OrderStatus>(s)).HasColumnName("status").IsRequired();
         builder.Property(o => o.TotalAmount).HasColumnName("total_amount");
 
         builder.HasMany(o => o.Products).WithMany(p => p.Orders).UsingEntity(b =>
