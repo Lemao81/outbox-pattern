@@ -6,22 +6,33 @@ using Common.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderService.API.Dto;
+using OrderService.API.HostedServices;
 using OrderService.Domain.Db;
 using OrderService.Domain.Extensions;
 using OrderService.Domain.Interfaces;
 using OrderService.Domain.Services;
+using Polly;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.ConfigureLogging(ServiceNames.OrderService);
 
-builder.Services.AddDbContext<OrderServiceDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+builder.Services.AddDbContextFactory<OrderServiceDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+
+builder.Services.AddHostedService<OutboxPollingHostedService>();
 
 builder.Services.AddRabbitMqConnectionFactory();
 
-builder.Services.AddScoped<IConnection>(sp => sp.GetRequiredService<ConnectionFactory>().CreateConnection());
-builder.Services.AddScoped<IMessageProducer, RabbitMqMessageProducer>();
+builder.Services.AddSingleton<IConnection>(sp =>
+{
+    var connectionFactory = sp.GetRequiredService<ConnectionFactory>();
+
+    return Policy.Handle<BrokerUnreachableException>().WaitAndRetry(5, _ => TimeSpan.FromSeconds(2)).Execute(() => connectionFactory.CreateConnection());
+});
+builder.Services.AddSingleton<IMessageProducer, RabbitMqMessageProducer>();
+
 builder.Services.AddScoped<IOrderCrudService, OrderCrudService>();
 
 builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
