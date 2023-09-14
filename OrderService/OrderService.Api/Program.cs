@@ -19,7 +19,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.ConfigureLogging(ServiceNames.OrderService);
 
-builder.Services.AddDbContextFactory<OrderServiceDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+builder.Services.AddDbContextFactory<OrderServiceDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"));
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+    }
+});
 
 builder.Services.AddHostedService<OutboxPollingHostedService>();
 

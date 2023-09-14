@@ -9,13 +9,12 @@ public static class WebApplicationBuilderExtensions
     public static WebApplicationBuilder ConfigureLogging(this WebApplicationBuilder builder, string serviceName)
     {
         builder.Logging.ClearProviders();
-        var logger = new LoggerConfiguration()
+        builder.Host.UseSerilog((context, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
             .Enrich.FromLogContext()
             .Enrich.WithProperty("ServiceName", serviceName)
             .WriteTo.Console()
-            .WriteTo.Seq("http://seq:5341")
-            .CreateLogger();
-        builder.Logging.AddSerilog(logger);
+            .WriteTo.Seq("http://seq:5341"));
 
         return builder;
     }
