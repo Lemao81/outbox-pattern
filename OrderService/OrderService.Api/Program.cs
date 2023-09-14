@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using Common.API.Extensions;
 using Common.Domain.Consts;
 using Common.Domain.Interfaces;
@@ -49,7 +50,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<OrderServiceDbContext>();
-    dbContext.Database.Migrate();
+    Policy.Handle<SocketException>().WaitAndRetry(10, _ => TimeSpan.FromSeconds(2)).Execute(() => dbContext.Database.Migrate());
 }
 
 app.MapPost("api/orders", async ([FromBody] AddOrderRequest request, [FromServices] IOrderCrudService orderCrudService) =>
