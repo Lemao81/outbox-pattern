@@ -1,4 +1,5 @@
-﻿using Common.Domain.Models.Dtos;
+﻿using System.Data;
+using Common.Domain.Models.Dtos;
 using Common.Domain.Models.Messages;
 using Common.Domain.Services;
 using Microsoft.EntityFrameworkCore;
@@ -49,17 +50,29 @@ public class OutboxPollingHostedService : BackgroundService
     private async Task PollOutboxEventsAsync(CancellationToken stoppingToken)
     {
         var dbContext = await _dbContextFactory.CreateDbContextAsync(stoppingToken);
-        var outboxEvents = await dbContext.Outboxes!.ToListAsync(stoppingToken);
-        foreach (var outboxEvent in outboxEvents)
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, stoppingToken);
+        try
         {
-            switch (outboxEvent.Event)
+            var outboxEvents = await dbContext.Outboxes!.ToListAsync(stoppingToken);
+            foreach (var outboxEvent in outboxEvents)
             {
-                case OutboxEvent.OrderCreated:
-                    await HandleOrderCreatedEventAsync(outboxEvent, dbContext, stoppingToken);
-                    break;
-                default:
-                    throw new ArgumentException($"Value '{outboxEvent.Event}' out of range");
+                switch (outboxEvent.Event)
+                {
+                    case OutboxEvent.OrderCreated:
+                        await HandleOrderCreatedEventAsync(outboxEvent, dbContext, stoppingToken);
+                        break;
+                    default:
+                        throw new ArgumentException($"Value '{outboxEvent.Event}' out of range");
+                }
             }
+
+            await transaction.CommitAsync(stoppingToken);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "{Message}", exception.Message);
+            await transaction.RollbackAsync(stoppingToken);
         }
     }
 
