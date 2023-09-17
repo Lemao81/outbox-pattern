@@ -18,24 +18,24 @@ public class RabbitMqMessageProducer : IMessageProducer
         _logger = logger;
     }
 
-    public Task ProduceMessageAsync<TMessage, TData>(TMessage message) where TMessage : MessageBase<TData>
+    public Task<bool> ProduceMessageAsync<TMessage, TData>(TMessage message) where TMessage : MessageBase<TData>
     {
         try
         {
             var channel = _connection.CreateModel();
-            channel.QueueDeclare(message.Topic, durable: true);
+            channel.QueueDeclare(message.Topic, durable: true, exclusive: false);
 
             var messageJson = JsonSerializer.Serialize(message);
             var bytes = Encoding.UTF8.GetBytes(messageJson);
             channel.BasicPublish("", message.Topic, body: bytes);
 
-            return Task.CompletedTask;
+            return Task.FromResult(true);
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "{Message}", exception.Message);
 
-            return Task.CompletedTask;
+            return Task.FromResult(false);
         }
     }
 }

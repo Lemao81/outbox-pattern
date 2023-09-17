@@ -13,6 +13,7 @@ public static class WebApplicationBuilderExtensions
             .ReadFrom.Configuration(context.Configuration)
             .Enrich.FromLogContext()
             .Enrich.WithProperty("ServiceName", serviceName)
+            .Enrich.WithProperty("ServiceInstanceName", Environment.MachineName)
             .WriteTo.Console()
             .WriteTo.Seq("http://seq:5341"));
 

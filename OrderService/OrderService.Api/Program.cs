@@ -6,6 +6,7 @@ using Common.Domain.Models;
 using Common.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using OrderService.API.Dto;
 using OrderService.API.HostedServices;
 using OrderService.Domain.Db;
@@ -50,7 +51,12 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<OrderServiceDbContext>();
-    Policy.Handle<SocketException>().WaitAndRetry(10, _ => TimeSpan.FromSeconds(2)).Execute(() => dbContext.Database.Migrate());
+    Policy.Handle<SocketException>().Or<PostgresException>(e => e.Message.Contains("system is starting up")).WaitAndRetry(10, _ => TimeSpan.FromSeconds(2))
+        .Execute(() =>
+        {
+            Console.WriteLine("Try migrate database");
+            dbContext.Database.Migrate();
+        });
 }
 
 app.MapPost("api/orders", async ([FromBody] AddOrderRequest request, [FromServices] IOrderCrudService orderCrudService) =>

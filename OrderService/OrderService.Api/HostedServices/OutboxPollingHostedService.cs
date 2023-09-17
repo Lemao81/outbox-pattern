@@ -51,10 +51,13 @@ public class OutboxPollingHostedService : BackgroundService
     {
         var dbContext = await _dbContextFactory.CreateDbContextAsync(stoppingToken);
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, stoppingToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
         try
         {
+            await dbContext.Database.ExecuteSqlRawAsync("lock public.outbox in share update exclusive mode;", stoppingToken);
             var outboxEvents = await dbContext.Outboxes!.ToListAsync(stoppingToken);
+            if (!outboxEvents.Any()) return;
+
             foreach (var outboxEvent in outboxEvents)
             {
                 switch (outboxEvent.Event)
@@ -82,11 +85,17 @@ public class OutboxPollingHostedService : BackgroundService
         if (order is not null)
         {
             var message = new OrderCreatedMessage(order.MapToDto());
-            await _messageProducer.ProduceMessageAsync<OrderCreatedMessage, OrderDto>(message);
-            _logger.LogInformation("Outbox event '{EventId}' sent | Entity id '{EntityId}'", outboxEvent.Id, outboxEvent.EntityId);
-        }
+            var isSuccess = await _messageProducer.ProduceMessageAsync<OrderCreatedMessage, OrderDto>(message);
+            if (!isSuccess)
+            {
+                _logger.LogWarning("Outbox event '{EventId}' could not be sent | Entity id '{EntityId}'", outboxEvent.Id, outboxEvent.EntityId);
 
-        dbContext.Outboxes!.Remove(outboxEvent);
-        await dbContext.SaveChangesAsync(stoppingToken);
+                return;
+            }
+
+            _logger.LogInformation("Outbox event '{EventId}' sent | Entity id '{EntityId}'", outboxEvent.Id, outboxEvent.EntityId);
+            dbContext.Outboxes!.Remove(outboxEvent);
+            await dbContext.SaveChangesAsync(stoppingToken);
+        }
     }
 }
