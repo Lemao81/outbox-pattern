@@ -10,12 +10,4 @@
       <ProjectReference Include="..\..\Common\Common.Domain\Common.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Db\Migrations\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="Migrations\20230904172319_Initial.Designer.cs" />
-    </ItemGroup>
-
 </Project>

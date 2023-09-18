@@ -5,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.ConfigureLogging(ServiceNames.DeliveryService);
 
+builder.Services.AddRabbitMqConnection();
+
 var app = builder.Build();
 
 app.Run();

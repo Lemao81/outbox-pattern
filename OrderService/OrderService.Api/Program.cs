@@ -14,8 +14,6 @@ using OrderService.Domain.Extensions;
 using OrderService.Domain.Interfaces;
 using OrderService.Domain.Services;
 using Polly;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,14 +30,8 @@ builder.Services.AddDbContextFactory<OrderServiceDbContext>(options =>
 
 builder.Services.AddHostedService<OutboxPollingHostedService>();
 
-builder.Services.AddRabbitMqConnectionFactory();
+builder.Services.AddRabbitMqConnection();
 
-builder.Services.AddSingleton<IConnection>(sp =>
-{
-    var connectionFactory = sp.GetRequiredService<ConnectionFactory>();
-
-    return Policy.Handle<BrokerUnreachableException>().WaitAndRetry(5, _ => TimeSpan.FromSeconds(2)).Execute(() => connectionFactory.CreateConnection());
-});
 builder.Services.AddSingleton<IMessageProducer, RabbitMqMessageProducer>();
 
 builder.Services.AddScoped<IOrderCrudService, OrderCrudService>();
