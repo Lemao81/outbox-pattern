@@ -1,7 +1,6 @@
-﻿using System.Data;
+﻿using Common.Domain.Interfaces;
 using Common.Domain.Models.Dtos;
 using Common.Domain.Models.Messages;
-using Common.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Domain.Db;
 using OrderService.Domain.Enums;

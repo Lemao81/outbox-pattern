@@ -1,6 +1,6 @@
 ﻿using Common.Domain.Models.Messages;
 
-namespace Common.Domain.Services;
+namespace Common.Domain.Interfaces;
 
 public interface IMessageProducer
 {

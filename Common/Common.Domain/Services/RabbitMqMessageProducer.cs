@@ -1,11 +1,11 @@
 ﻿using System.Text;
 using System.Text.Json;
+using Common.Domain.Interfaces;
 using Common.Domain.Models.Messages;
-using Common.Domain.Services;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace Common.Domain.Interfaces;
+namespace Common.Domain.Services;
 
 public class RabbitMqMessageProducer : IMessageProducer
 {
