@@ -1,4 +1,5 @@
-﻿using OrderService.Domain.Enums;
+﻿using Common.Domain.Models;
+using OrderService.Domain.Enums;
 
 namespace OrderService.Domain.Models;
 

@@ -1,4 +1,4 @@
-﻿namespace OrderService.Domain.Models;
+﻿namespace Common.Domain.Models;
 
 public abstract class EntityBase
 {

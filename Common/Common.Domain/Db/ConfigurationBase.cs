@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Common.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using OrderService.Domain.Models;
 
-namespace OrderService.Domain.Db.Configurations;
+namespace Common.Domain.Db;
 
 public abstract class ConfigurationBase<T> : IEntityTypeConfiguration<T> where T : EntityBase
 {
